@@ -12,10 +12,10 @@ class PSOParticle:
     PSO粒子类，用于表示CNN架构
     
     粒子编码方案:
-    - conv_layers: 卷积层数量 (1-4)
+    - conv_layers: 卷积层数量 (2-4)
     - conv_filters: 每层卷积核数量 [6, 16, 32, 64]
     - conv_kernels: 每层卷积核大小 [3, 5, 7]
-    - fc_layers: 全连接层数量 (1-3)
+    - fc_layers: 全连接层数量 (2-4)
     - fc_sizes: 每层全连接层大小 [64, 128, 256, 512]
     """
     

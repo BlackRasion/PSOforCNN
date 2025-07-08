@@ -1,0 +1,16 @@
+{
+  "conv_layers": 2,
+  "conv_filters": [
+    64,
+    64
+  ],
+  "conv_kernels": [
+    3,
+    5
+  ],
+  "fc_layers": 2,
+  "fc_sizes": [
+    512,
+    512
+  ]
+}
