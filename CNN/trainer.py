@@ -53,6 +53,13 @@ class CNNTrainer:
             momentum=Config.MOMENTUM
         )
         
+        # 学习率调度器
+        self.scheduler = optim.lr_scheduler.StepLR(
+            self.optimizer, 
+            step_size=Config.LR_DECAY_STEP, 
+            gamma=Config.LR_DECAY_FACTOR
+        )
+        
         # TensorBoard
         self.writer = SummaryWriter(Config.TENSORBOARD_LOG_DIR)
         
@@ -65,6 +72,8 @@ class CNNTrainer:
         print(f"设备: {self.device}")
         print(f"损失函数: {self.criterion}")
         print(f"优化器: {self.optimizer}")
+        print(f"学习率调度器: {self.scheduler}")
+        print(f"初始学习率: {Config.LEARNING_RATE}")
         print(f"TensorBoard日志目录: {Config.TENSORBOARD_LOG_DIR}")
     
     def train_epoch(self, epoch):
@@ -200,10 +209,19 @@ class CNNTrainer:
             self.train_accuracies.append(train_acc)
             self.test_accuracies.append(test_acc)
             
+            # 更新学习率
+            current_lr = self.optimizer.param_groups[0]['lr']
+            self.scheduler.step()
+            new_lr = self.optimizer.param_groups[0]['lr']
+            
+            # 记录学习率到TensorBoard
+            self.writer.add_scalar('Learning_Rate', current_lr, epoch)
+            
             epoch_time = time.time() - epoch_start_time
             print(f'Epoch {epoch + 1}/{num_epochs} 完成 - '
                   f'训练准确率: {train_acc:.2f}%, '
                   f'测试准确率: {test_acc:.2f}%, '
+                  f'学习率: {current_lr:.6f}, '
                   f'用时: {epoch_time:.2f}s')
             print("-" * 60)
         
@@ -365,7 +383,8 @@ class CNNTrainer:
         os.makedirs(Config.MODEL_SAVE_DIR, exist_ok=True)
         plt.savefig(os.path.join(Config.MODEL_SAVE_DIR, 'training_curves.png'), 
                    dpi=300, bbox_inches='tight')
-        plt.show()
+        # plt.show()
+        plt.close()  # 关闭图形窗口，避免阻塞程序
         
         print("训练曲线已保存")
 

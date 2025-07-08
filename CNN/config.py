@@ -18,15 +18,17 @@ class Config:
     RANDOM_STATE = 42 # 随机种子
     
     # 数据加载器配置
-    BATCH_SIZE = 4 # 批次大小
-    NUM_WORKERS = 2 # 工作线程数
+    BATCH_SIZE = 32 # 批次大小
+    NUM_WORKERS = 4 # 工作线程数
     SHUFFLE_TRAIN = True # 训练集是否随机洗牌
     SHUFFLE_TEST = False  # 测试集是否随机洗牌
     
     # 训练配置
-    EPOCHS = 7
-    LEARNING_RATE = 0.001
-    MOMENTUM = 0.9
+    EPOCHS = 15
+    LEARNING_RATE = 0.02  # 初始学习率
+    MOMENTUM = 0.9 # 动量
+    LR_DECAY_FACTOR = 0.5  # 学习率衰减因子
+    LR_DECAY_STEP = 5  # 每5个epoch衰减一次
     LOG_INTERVAL = 1000  # 每1000个batch记录一次
     MODEL_SAVE_DIR = os.path.join(SCRIPT_DIR, "models")
     
