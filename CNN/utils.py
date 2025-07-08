@@ -31,7 +31,7 @@ def visualize_dataset_samples(dataset, num_samples=16, save_path=None):
         save_path (str): 保存路径，如果为None则不保存
     """
     fig, axes = plt.subplots(4, 4, figsize=(12, 12))
-    fig.suptitle('数据集样本展示', fontsize=16)
+    fig.suptitle('Dataset Sample Visualization', fontsize=16)
     
     # 随机选择样本
     indices = np.random.choice(len(dataset.data), num_samples, replace=False)
@@ -72,9 +72,9 @@ def plot_confusion_matrix(y_true, y_pred, save_path=None):
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                 xticklabels=Config.CLASSES,
                 yticklabels=Config.CLASSES)
-    plt.title('混淆矩阵')
-    plt.xlabel('预测标签')
-    plt.ylabel('真实标签')
+    plt.title('Confusion Matrix')
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
     plt.xticks(rotation=45)
     plt.yticks(rotation=0)
     
@@ -106,9 +106,9 @@ def analyze_class_distribution(dataset, save_path=None):
     plt.subplot(1, 2, 1)
     class_names = [Config.CLASSES[i] for i in unique]
     bars = plt.bar(class_names, counts, color='skyblue', alpha=0.7)
-    plt.title('类别分布 - 柱状图')
-    plt.xlabel('类别')
-    plt.ylabel('样本数量')
+    plt.title('Class Distribution - Bar Chart')
+    plt.xlabel('Class')
+    plt.ylabel('Number of Samples')
     plt.xticks(rotation=45)
     
     # 添加数值标签
@@ -119,7 +119,7 @@ def analyze_class_distribution(dataset, save_path=None):
     # 饼图
     plt.subplot(1, 2, 2)
     plt.pie(counts, labels=class_names, autopct='%1.1f%%', startangle=90)
-    plt.title('类别分布 - 饼图')
+    plt.title('Class Distribution - Pie Chart')
     
     plt.tight_layout()
     
@@ -169,7 +169,7 @@ def visualize_model_predictions(model, dataloader, device, num_samples=8, save_p
     
     # 可视化
     fig, axes = plt.subplots(2, 4, figsize=(16, 8))
-    fig.suptitle('模型预测结果展示', fontsize=16)
+    fig.suptitle('Model Prediction Results', fontsize=16)
     
     for i in range(min(num_samples, len(images))):
         row, col = i // 4, i % 4
@@ -187,7 +187,7 @@ def visualize_model_predictions(model, dataloader, device, num_samples=8, save_p
         
         # 设置标题颜色（正确预测为绿色，错误预测为红色）
         color = 'green' if true_label == pred_label else 'red'
-        title = f'真实: {true_class}\n预测: {pred_class}\n置信度: {confidence:.3f}'
+        title = f'True: {true_class}\nPred: {pred_class}\nConf: {confidence:.3f}'
         axes[row, col].set_title(title, color=color, fontsize=10)
         axes[row, col].axis('off')
     

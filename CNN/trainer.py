@@ -362,7 +362,7 @@ class CNNTrainer:
         epochs = range(1, len(self.train_accuracies) + 1)
         plt.plot(epochs, self.train_accuracies, 'b-', label='Training accuracy')
         plt.plot(epochs, self.test_accuracies, 'r-', label='Testing accuracy')
-        plt.title('Model accuracy')
+        plt.title('Model Accuracy')
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy (%)')
         plt.legend()
