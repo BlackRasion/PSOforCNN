@@ -7,7 +7,6 @@
 import torch
 import psutil
 import platform
-import subprocess
 import sys
 import os
 from datetime import datetime

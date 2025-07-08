@@ -155,20 +155,22 @@ def analyze_results(pso_results, baseline_accuracy=None):
     print("结果分析")
     print("=" * 60)
     
+    # 使用最终模型准确率，如果没有则使用PSO搜索过程中的适应度
+    final_accuracy = pso_results.get('final_model_accuracy', pso_results['best_fitness'])
     best_fitness = pso_results['best_fitness']
     total_time = pso_results['total_time']
     history = pso_results['history']
     
     print(f"PSO优化结果:")
-    print(f"  最优准确率: {best_fitness:.2f}%")
+    print(f"  最优准确率: {final_accuracy:.2f}%")
     print(f"  优化总时间: {total_time:.2f}s ({total_time/60:.1f}分钟)")
     print(f"  平均每次迭代时间: {sum(history['iteration_times'])/len(history['iteration_times']):.2f}s")
     
     if baseline_accuracy is not None:
-        improvement = best_fitness - baseline_accuracy
+        improvement = final_accuracy - baseline_accuracy
         print(f"\n与基准模型比较:")
         print(f"  基准模型准确率: {baseline_accuracy:.2f}%")
-        print(f"  PSO优化准确率: {best_fitness:.2f}%")
+        print(f"  PSO优化准确率: {final_accuracy:.2f}%")
         print(f"  性能提升: {improvement:+.2f}%")
         
         if improvement > 0:
@@ -251,6 +253,10 @@ def main():
     # 更新总时间
     pso_results['total_time'] = total_time
     
+    # 更新最终模型准确率到结果中
+    if optimizer.final_model_accuracy is not None:
+        pso_results['final_model_accuracy'] = optimizer.final_model_accuracy
+    
     # 显示最优架构信息
     print("\n" + "=" * 60)
     print("最优架构信息")
@@ -298,13 +304,14 @@ def save_demo_report(pso_results, baseline_accuracy, args):
         f.write(f"  快速模式: {'是' if args.quick else '否'}\n\n")
         
         # PSO结果
+        final_accuracy = pso_results.get('final_model_accuracy', pso_results['best_fitness'])
         f.write("PSO优化结果:\n")
-        f.write(f"  最优准确率: {pso_results['best_fitness']:.2f}%\n")
+        f.write(f"  最优准确率: {final_accuracy:.2f}%\n")
         f.write(f"  优化总时间: {pso_results['total_time']:.2f}s\n")
         
         # 基准比较
         if baseline_accuracy is not None:
-            improvement = pso_results['best_fitness'] - baseline_accuracy
+            improvement = final_accuracy - baseline_accuracy
             f.write(f"\n基准模型比较:\n")
             f.write(f"  基准模型准确率: {baseline_accuracy:.2f}%\n")
             f.write(f"  性能提升: {improvement:+.2f}%\n")

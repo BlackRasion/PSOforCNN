@@ -8,21 +8,28 @@
 CNN/
 ├── config.py              # 配置管理模块
 ├── data_loader.py          # 数据加载和预处理模块
-├── model.py               # 模型定义模块
-├── trainer.py             # 训练和评估模块
-├── utils.py               # 工具和可视化模块
+├── model.py               # 基础CNN模型定义模块
+├── trainer.py             # 基础CNN训练和评估模块
 ├── main.py                # 主程序入口
 ├── check_hardware.py      # 硬件检测工具
+├── pso_particle.py        # PSO粒子定义模块
+├── pso_model.py           # PSO动态CNN模型模块
+├── pso_trainer.py         # PSO训练器模块
+├── pso_optimizer.py       # PSO优化算法模块
+├── pso_demo.py            # PSO演示程序
+├── PSO_USAGE.md           # PSO使用说明文档
 ├── README.md              # 项目说明文档
 ├── requirements.txt       # 依赖包列表
 ├── data/
 │   └── minist/            # 训练数据目录
-├── models/                # 模型保存目录
+├── models/                # 基础模型保存目录
 │   ├── chinese_number_cnn.pth
 │   └── training_curves.png
-├── runs/                  # TensorBoard日志目录
-│   └── mnist_experiment_1/
-└── results/               # 结果保存目录
+├── PSO/                   # PSO相关文件目录
+│   ├── models/            # PSO模型保存目录
+│   └── runs/              # PSO TensorBoard日志目录
+└── runs/                  # 基础训练TensorBoard日志目录
+    └── mnist_experiment_1/
 ```
 
 ## 功能特性
@@ -60,12 +67,12 @@ CNN/
 - **分类报告**: 完整的性能评估报告
 - **训练曲线可视化**: 自动生成并保存训练曲线图
 
-### 🔍 分析工具
-- 混淆矩阵可视化
-- 错误分析
-- 类别分布统计
-- 预测结果可视化
-- 训练曲线绘制
+### 🔍 PSO架构优化
+- **粒子群优化**: 自动搜索最优CNN架构
+- **动态模型构建**: 根据PSO参数动态创建CNN模型
+- **架构参数优化**: 卷积层数、滤波器数量、全连接层配置
+- **性能对比**: PSO优化架构与基准模型的性能比较
+- **可视化分析**: PSO收敛过程和最优架构可视化
 
 ## 环境要求
 
@@ -95,7 +102,9 @@ python check_hardware.py --quiet
 
 ## 使用方法
 
-### 1. 配置设置
+### 1. 基础CNN训练
+
+#### 配置设置
 
 编辑 `config.py` 文件，设置数据路径和其他参数：
 
@@ -115,18 +124,36 @@ LR_DECAY_FACTOR = 0.5  # 学习率衰减因子
 LR_DECAY_STEP = 5      # 每5个epoch衰减一次
 ```
 
-### 2. 训练模型
+#### 训练模型
 
 ```bash
-# 基本训练
-python main.py
+# 基本训练模式
+python main.py --mode train
 
-# 查看训练过程
-# 训练会自动显示每个epoch的:
-# - 训练准确率
-# - 测试准确率  
-# - 当前学习率
-# - 训练时间
+# 训练+评估模式
+python main.py --mode both
+
+# 仅评估模式
+python main.py --mode eval --model_path models/chinese_number_cnn.pth
+
+# 自定义参数训练
+python main.py --epochs 20 --batch_size 64 --lr 0.01
+```
+
+### 2. PSO架构优化
+
+```bash
+# 运行PSO架构搜索
+python main.py --mode pso
+
+# 或直接运行PSO演示
+python pso_demo.py
+
+# PSO快速演示模式
+python pso_demo.py --quick
+
+# 跳过基准模型比较
+python pso_demo.py --skip-baseline
 ```
 
 ### 3. 监控训练过程
@@ -214,6 +241,15 @@ Epoch 11-15: 学习率 = 0.005 (0.01 × 0.5)
 - **参数数量**: ~61,706个可训练参数
 - **支持设备**: CPU / CUDA GPU / MPS (Apple Silicon)
 
+## 代码质量保证
+
+### ✅ 已完成的优化
+- **代码结构优化**: 移除冗余文件和未使用的导入
+- **错误修复**: 修复模型配置引用错误和缺失导入
+- **模块化设计**: 清晰的职责分离和接口设计
+- **PSO集成**: 完整的粒子群优化架构搜索功能
+- **配置统一**: 统一的参数管理和设备配置
+
 ## 进一步优化建议
 
 1. **数据增强**: 添加旋转、缩放、噪声等数据增强技术
@@ -221,8 +257,8 @@ Epoch 11-15: 学习率 = 0.005 (0.01 × 0.5)
 3. **正则化**: 添加Dropout和BatchNorm层防止过拟合
 4. **优化器**: 尝试Adam、AdamW等自适应学习率优化器
 5. **学习率调度**: 尝试CosineAnnealingLR、ReduceLROnPlateau等策略
-6. **数据扩充**: 增加训练数据量和多样性
-7. **模型集成**: 使用多个模型进行集成预测
+6. **PSO参数调优**: 优化粒子数量、迭代次数和搜索空间
+7. **模型集成**: 使用多个PSO优化模型进行集成预测
 
 ## 故障排除
 
@@ -265,6 +301,7 @@ python config.py         # 查看配置信息
 ## 项目特色
 
 ✅ **完全模块化设计** - 清晰的代码结构和职责分离  
+✅ **PSO架构优化** - 自动搜索最优CNN架构配置  
 ✅ **动态学习率调整** - 自动优化训练过程  
 ✅ **实时训练监控** - TensorBoard集成可视化  
 ✅ **硬件自适应** - 自动检测和配置最佳设备  
@@ -278,6 +315,13 @@ python config.py         # 查看配置信息
 
 ## 更新日志
 
+- **v3.0**: PSO架构优化版本
+  - 集成粒子群优化算法进行架构搜索
+  - 添加动态CNN模型构建功能
+  - 实现PSO训练器和优化器
+  - 完成代码质量检查和优化
+  - 移除冗余文件和未使用代码
+  - 修复配置引用错误和缺失导入
 - **v2.0**: 动态学习率调整版本
   - 添加StepLR学习率调度器
   - 优化训练监控和可视化

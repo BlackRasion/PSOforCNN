@@ -4,8 +4,6 @@ PSO粒子类 - 用于表示CNN架构
 """
 
 import numpy as np
-import torch
-import torch.nn as nn
 from config import Config
 
 

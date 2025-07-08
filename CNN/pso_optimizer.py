@@ -9,6 +9,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+import torch
 
 from config import Config
 from pso_particle import PSOParticle
@@ -36,10 +37,7 @@ class PSOOptimizer:
         """
         self.trainloader = trainloader
         self.testloader = testloader
-        self.device = device if device else Config.DEVICE
-        
-        # 创建PSO训练器
-        self.trainer = PSOTrainer(trainloader, testloader, device)
+        self.device = device if device else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # PSO参数
         self.particle_size = Config.PSO_PARTICLE_SIZE
@@ -49,12 +47,15 @@ class PSOOptimizer:
         self.c1 = Config.PSO_C1
         self.c2 = Config.PSO_C2
         
-        # 初始化粒子群
+        # 粒子群
         self.particles = []
         self.global_best_position = None
-        self.global_best_fitness = float('-inf')
+        self.global_best_fitness = -float('inf')
         
-        # 优化历史
+        # 最终模型准确率（用于显示）
+        self.final_model_accuracy = None
+        
+        # 历史记录
         self.history = {
             'global_best_fitness': [],
             'avg_fitness': [],
@@ -62,11 +63,14 @@ class PSOOptimizer:
             'iteration_times': []
         }
         
-        # 结果保存目录
+        # 训练器
+        self.trainer = PSOTrainer(trainloader, testloader, device)
+        
+        # 保存目录
         self.save_dir = Config.PSO_SAVE_DIR
         os.makedirs(self.save_dir, exist_ok=True)
-        os.makedirs(os.path.join(self.save_dir, 'models'), exist_ok=True)
-        os.makedirs(os.path.join(self.save_dir, 'runs'), exist_ok=True)
+        os.makedirs(os.path.join(self.save_dir, "models"), exist_ok=True)
+        os.makedirs(os.path.join(self.save_dir, "runs"), exist_ok=True)
         
         print(f"PSO优化器初始化完成")
         print(f"粒子数量: {self.particle_size}")
@@ -222,6 +226,7 @@ class PSOOptimizer:
         return {
             'best_position': self.global_best_position,
             'best_fitness': self.global_best_fitness,
+            'final_model_accuracy': self.final_model_accuracy,
             'history': self.history,
             'total_time': total_time
         }
@@ -318,6 +323,9 @@ class PSOOptimizer:
             tensorboard_dir=tensorboard_dir
         )
         
+        # 保存最终模型准确率用于显示
+        self.final_model_accuracy = accuracy
+        
         # 保存训练历史
         history_file = os.path.join(self.save_dir, "models", f"training_history_{timestamp}.json")
         with open(history_file, 'w') as f:
@@ -384,6 +392,11 @@ class PSOOptimizer:
         info += f"卷积核大小: {self.global_best_position['conv_kernels']}\n"
         info += f"全连接层数量: {self.global_best_position['fc_layers']}\n"
         info += f"全连接层大小: {self.global_best_position['fc_sizes']}\n"
-        info += f"适应度(准确率): {self.global_best_fitness:.2f}%\n"
+        
+        # 显示最终训练模型的准确率，如果没有则显示PSO搜索过程中的适应度
+        if self.final_model_accuracy is not None:
+            info += f"最终模型准确率: {self.final_model_accuracy:.2f}%\n"
+        else:
+            info += f"PSO搜索适应度: {self.global_best_fitness:.2f}%\n"
         
         return info
