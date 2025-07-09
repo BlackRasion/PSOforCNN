@@ -35,7 +35,7 @@ def create_optimized_data_loaders():
     X_train, y_train, y_train_hot, X_test, y_test, y_test_hot = dataset.split_data()
     
     # 为了减少训练时间，使用数据集的子集
-    subset_ratio = 0.75  # 使用75%的数据进行PSO搜索
+    subset_ratio = Config.PSO_DATA_SUBSET_RATIO  # 使用配置的数据子集比例进行PSO搜索
     
     # 计算子集大小
     train_size = len(X_train)

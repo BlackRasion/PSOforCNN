@@ -94,9 +94,14 @@ def get_gpu_info():
             props = torch.cuda.get_device_properties(i)
             print(f"  计算能力: {props.major}.{props.minor}")
             print(f"  多处理器数量: {props.multi_processor_count}")
-            print(f"  最大线程数/块: {props.max_threads_per_block}")
-            print(f"  最大块维度: {props.max_block_dims}")
-            print(f"  最大网格维度: {props.max_grid_dims}")
+            
+            # 安全地访问可能不存在的属性
+            if hasattr(props, 'max_threads_per_block'):
+                print(f"  最大线程数/块: {props.max_threads_per_block}")
+            if hasattr(props, 'max_block_dims'):
+                print(f"  最大块维度: {props.max_block_dims}")
+            if hasattr(props, 'max_grid_dims'):
+                print(f"  最大网格维度: {props.max_grid_dims}")
     
     # 检查MPS (Apple Silicon)
     if hasattr(torch.backends, 'mps'):
@@ -173,7 +178,7 @@ def check_dependencies():
     
     packages = [
         'torch', 'torchvision', 'numpy', 'matplotlib', 
-        'scikit-learn', 'pillow', 'tensorboard'
+        'scikit-learn', 'tensorboard'
     ]
     
     for package in packages:

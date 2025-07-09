@@ -40,6 +40,7 @@ class Config:
     PSO_ITERATIONS = 5  # PSO迭代次数
     PSO_TRAIN_EPOCHS = 8  # 每个粒子训练的epochs数
     PSO_FINAL_EPOCHS = 15  # 最优架构的最终训练epochs
+    PSO_DATA_SUBSET_RATIO = 0.75  # PSO训练时使用的数据子集比例
     PSO_SAVE_DIR = os.path.join(SCRIPT_DIR, "PSO")  # PSO结果保存目录
     PSO_TENSORBOARD_DIR = 'PSO/runs'  # PSO TensorBoard日志目录
     

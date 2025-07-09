@@ -23,13 +23,8 @@ CNN/
 ├── data/
 │   └── minist/            # 训练数据目录
 ├── models/                # 基础模型保存目录
-│   ├── chinese_number_cnn.pth
-│   └── training_curves.png
 ├── PSO/                   # PSO相关文件目录
-│   ├── models/            # PSO模型保存目录
-│   └── runs/              # PSO TensorBoard日志目录
 └── runs/                  # 基础训练TensorBoard日志目录
-    └── mnist_experiment_1/
 ```
 
 ## 功能特性
@@ -60,7 +55,7 @@ CNN/
 - **输出层**: 15个神经元 (对应15个中文数字类别)
 
 ### 📈 训练功能
-- **动态学习率**: 从0.02开始，每5个epoch衰减50%
+- **动态学习率**: 从0.017开始，每3个epoch衰减33%
 - **TensorBoard集成**: 实时监控训练指标和学习率变化
 - **自动模型保存**: 训练完成后自动保存最佳模型
 - **精确率-召回率曲线**: 每个类别的详细性能分析
@@ -106,23 +101,7 @@ python check_hardware.py --quiet
 
 #### 配置设置
 
-编辑 `config.py` 文件，设置数据路径和其他参数：
-
-```python
-# 数据配置
-DATA_PATH = os.path.join(SCRIPT_DIR, "data", "minist")
-IMAGE_SIZE = (28, 28)
-NUM_CLASSES = 15
-TEST_SIZE = 0.3
-
-# 训练配置
-EPOCHS = 15
-BATCH_SIZE = 32
-LEARNING_RATE = 0.02  # 初始学习率
-MOMENTUM = 0.9
-LR_DECAY_FACTOR = 0.5  # 学习率衰减因子
-LR_DECAY_STEP = 5      # 每5个epoch衰减一次
-```
+编辑 `config.py` 文件，设置数据路径和其他参数.
 
 #### 训练模型
 
@@ -140,29 +119,11 @@ python main.py --mode eval --model_path models/chinese_number_cnn.pth
 python main.py --epochs 20 --batch_size 64 --lr 0.01
 ```
 
-### 2. PSO架构优化
-
-```bash
-# 运行PSO架构搜索
-python main.py --mode pso
-
-# 或直接运行PSO演示
-python pso_demo.py
-
-# PSO快速演示模式
-python pso_demo.py --quick
-
-# 跳过基准模型比较
-python pso_demo.py --skip-baseline
-```
-
-### 3. 监控训练过程
+### 2. 监控训练过程
 
 ```bash
 # 启动TensorBoard查看训练过程
 tensorboard --logdir=runs/mnist_experiment_1
-
-# 在浏览器中访问: http://localhost:6006
 # 可以查看:
 # - 训练损失和准确率曲线
 # - 学习率变化曲线
@@ -185,9 +146,9 @@ tensorboard --logdir=runs/mnist_experiment_1
 |------|------|--------|
 | `EPOCHS` | 训练轮数 | 15 |
 | `BATCH_SIZE` | 批次大小 | 32 |
-| `LEARNING_RATE` | 初始学习率 | 0.02 |
-| `LR_DECAY_FACTOR` | 学习率衰减因子 | 0.5 |
-| `LR_DECAY_STEP` | 学习率衰减步长 | 5 |
+| `LEARNING_RATE` | 初始学习率 | 0.017 |
+| `LR_DECAY_FACTOR` | 学习率衰减因子 | 0.67 |
+| `LR_DECAY_STEP` | 学习率衰减步长 | 3 |
 | `MOMENTUM` | SGD动量 | 0.9 |
 | `NUM_CLASSES` | 分类数量 | 15 |
 | `TEST_SIZE` | 测试集比例 | 0.3 |
@@ -198,9 +159,11 @@ tensorboard --logdir=runs/mnist_experiment_1
 
 ```python
 # 学习率变化轨迹
-Epoch 1-5:   学习率 = 0.02
-Epoch 6-10:  学习率 = 0.01  (0.02 × 0.5)
-Epoch 11-15: 学习率 = 0.005 (0.01 × 0.5)
+Epoch 1-3:   学习率 = 0.017
+Epoch 4-6:   学习率 = 0.011  (0.017 × 0.67)
+Epoch 7-9:   学习率 = 0.007  (0.011 × 0.67)
+Epoch 10-12: 学习率 = 0.005  (0.007 × 0.67)
+Epoch 13-15: 学习率 = 0.003  (0.005 × 0.67)
 ```
 
 这种策略有助于：
@@ -222,69 +185,10 @@ Epoch 11-15: 学习率 = 0.005 (0.01 × 0.5)
 数据文件夹 `data/minist/` 应包含以下格式的图像文件：
 - **文件格式**: `.jpg`
 - **文件命名**: `input_X_Y_Z.jpg`
-  - X: 数据集编号 (1, 2, 3, 4)
-  - Y: 类别编号 (1-10对应数字0-9, 11-15对应十、百、千、万、亿)
-  - Z: 样本编号 (1-15)
 - **图像要求**: 28×28像素，灰度图像
-- **类别映射**: 
-  ```
-  1→零, 2→一, 3→二, 4→三, 5→四, 6→五, 7→六, 8→七, 9→八, 10→九
-  11→十, 12→百, 13→千, 14→万, 15→亿
-  ```
 
-## 模型性能
-
-基于当前配置的典型性能：
-- **预期准确率**: 80%+ (使用动态学习率调整)
-- **训练时间**: 约5-10分钟 (取决于硬件)
-- **模型大小**: 约1MB
-- **参数数量**: ~61,706个可训练参数
-- **支持设备**: CPU / CUDA GPU / MPS (Apple Silicon)
-
-## 代码质量保证
-
-### ✅ 已完成的优化
-- **代码结构优化**: 移除冗余文件和未使用的导入
-- **错误修复**: 修复模型配置引用错误和缺失导入
-- **模块化设计**: 清晰的职责分离和接口设计
-- **PSO集成**: 完整的粒子群优化架构搜索功能
-- **配置统一**: 统一的参数管理和设备配置
-
-## 进一步优化建议
-
-1. **数据增强**: 添加旋转、缩放、噪声等数据增强技术
-2. **网络结构**: 尝试ResNet、DenseNet等更深的网络
-3. **正则化**: 添加Dropout和BatchNorm层防止过拟合
-4. **优化器**: 尝试Adam、AdamW等自适应学习率优化器
-5. **学习率调度**: 尝试CosineAnnealingLR、ReduceLROnPlateau等策略
-6. **PSO参数调优**: 优化粒子数量、迭代次数和搜索空间
-7. **模型集成**: 使用多个PSO优化模型进行集成预测
 
 ## 故障排除
-
-### 常见问题
-
-1. **数据路径错误**
-   ```
-   错误: 找不到数据文件
-   解决: 确保 data/minist/ 目录存在且包含图像文件
-   ```
-
-2. **CUDA内存不足**
-   ```
-   解决: 减小BATCH_SIZE (如改为16或8) 或使用CPU训练
-   ```
-
-3. **PyTorch版本兼容性**
-   ```
-   错误: torch.cuda.memory_reserved 不存在
-   解决: 已在check_hardware.py中处理版本兼容性
-   ```
-
-4. **学习率过高导致训练不稳定**
-   ```
-   解决: 降低初始学习率或调整衰减参数
-   ```
 
 ### 调试工具
 
@@ -298,36 +202,6 @@ python model.py          # 测试模型创建
 python config.py         # 查看配置信息
 ```
 
-## 项目特色
-
-✅ **完全模块化设计** - 清晰的代码结构和职责分离  
-✅ **PSO架构优化** - 自动搜索最优CNN架构配置  
-✅ **动态学习率调整** - 自动优化训练过程  
-✅ **实时训练监控** - TensorBoard集成可视化  
-✅ **硬件自适应** - 自动检测和配置最佳设备  
-✅ **版本兼容性** - 支持不同PyTorch版本  
-✅ **详细性能分析** - 完整的分类报告和曲线图  
-✅ **易于扩展** - 清晰的接口设计便于功能扩展  
-
 ## 许可证
 
-本项目仅供学习和研究使用。
-
-## 更新日志
-
-- **v3.0**: PSO架构优化版本
-  - 集成粒子群优化算法进行架构搜索
-  - 添加动态CNN模型构建功能
-  - 实现PSO训练器和优化器
-  - 完成代码质量检查和优化
-  - 移除冗余文件和未使用代码
-  - 修复配置引用错误和缺失导入
-- **v2.0**: 动态学习率调整版本
-  - 添加StepLR学习率调度器
-  - 优化训练监控和可视化
-  - 增强硬件检测功能
-  - 改进版本兼容性
-- **v1.0**: 初始模块化版本
-  - 重构原始Jupyter Notebook
-  - 实现完整的训练和评估流程
-  - 添加TensorBoard集成
+本项目仅供学习和交流使用。
