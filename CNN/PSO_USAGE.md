@@ -62,20 +62,17 @@ python pso_demo.py --skip-baseline
 
 在 `config.py` 中可以调整以下PSO相关参数：
 
-```python
-# PSO算法参数
-PSO_PARTICLE_SIZE = 10      # 粒子群大小
-PSO_ITERATIONS = 5          # PSO迭代次数
-PSO_TRAIN_EPOCHS = 8        # 每个粒子训练的epochs
-PSO_FINAL_EPOCHS = 15       # 最优架构最终训练epochs
-PSO_DATA_SUBSET_RATIO = 0.75 # PSO训练时使用的数据子集比例
-
-# PSO算法超参数
-PSO_W_MIN = 0.4            # 惯性权重最小值
-PSO_W_MAX = 0.9            # 惯性权重最大值
-PSO_C1 = 2.0               # 个体学习因子
-PSO_C2 = 2.0               # 社会学习因子
-```
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `PSO_PARTICLE_SIZE` | 粒子群大小 | 10 |
+| `PSO_ITERATIONS` | PSO迭代次数 | 5 |
+| `PSO_TRAIN_EPOCHS` | 每个粒子训练的epochs | 8 |
+| `PSO_FINAL_EPOCHS` | 最优架构最终训练epochs | 15 |
+| `PSO_DATA_SUBSET_RATIO` | PSO训练时使用的数据子集比例 | 0.75 |
+| `PSO_W_MIN` | 惯性权重最小值 | 0.4 |
+| `PSO_W_MAX` | 惯性权重最大值 | 0.9 |
+| `PSO_C1` | 个体学习因子 | 2.0 |
+| `PSO_C2` | 社会学习因子 | 2.0 |
 
 ## 架构搜索空间
 
