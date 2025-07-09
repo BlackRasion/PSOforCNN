@@ -8,21 +8,23 @@
 CNN/
 ├── config.py              # 配置管理模块
 ├── data_loader.py          # 数据加载和预处理模块
-├── model.py               # 模型定义模块
-├── trainer.py             # 训练和评估模块
-├── utils.py               # 工具和可视化模块
+├── model.py               # 基础CNN模型定义模块
+├── trainer.py             # 基础CNN训练和评估模块
 ├── main.py                # 主程序入口
 ├── check_hardware.py      # 硬件检测工具
+├── pso_particle.py        # PSO粒子定义模块
+├── pso_model.py           # PSO动态CNN模型模块
+├── pso_trainer.py         # PSO训练器模块
+├── pso_optimizer.py       # PSO优化算法模块
+├── pso_demo.py            # PSO演示程序
+├── PSO_USAGE.md           # PSO使用说明文档
 ├── README.md              # 项目说明文档
 ├── requirements.txt       # 依赖包列表
 ├── data/
 │   └── minist/            # 训练数据目录
-├── models/                # 模型保存目录
-│   ├── chinese_number_cnn.pth
-│   └── training_curves.png
-├── runs/                  # TensorBoard日志目录
-│   └── mnist_experiment_1/
-└── results/               # 结果保存目录
+├── models/                # 基础模型保存目录
+├── PSO/                   # PSO相关文件目录
+└── runs/                  # 基础训练TensorBoard日志目录
 ```
 
 ## 功能特性
@@ -53,19 +55,19 @@ CNN/
 - **输出层**: 15个神经元 (对应15个中文数字类别)
 
 ### 📈 训练功能
-- **动态学习率**: 从0.02开始，每5个epoch衰减50%
+- **动态学习率**: 从0.017开始，每3个epoch衰减33%
 - **TensorBoard集成**: 实时监控训练指标和学习率变化
 - **自动模型保存**: 训练完成后自动保存最佳模型
 - **精确率-召回率曲线**: 每个类别的详细性能分析
 - **分类报告**: 完整的性能评估报告
 - **训练曲线可视化**: 自动生成并保存训练曲线图
 
-### 🔍 分析工具
-- 混淆矩阵可视化
-- 错误分析
-- 类别分布统计
-- 预测结果可视化
-- 训练曲线绘制
+### 🔍 PSO架构优化
+- **粒子群优化**: 自动搜索最优CNN架构
+- **动态模型构建**: 根据PSO参数动态创建CNN模型
+- **架构参数优化**: 卷积层数、滤波器数量、全连接层配置
+- **性能对比**: PSO优化架构与基准模型的性能比较
+- **可视化分析**: PSO收敛过程和最优架构可视化
 
 ## 环境要求
 
@@ -95,47 +97,33 @@ python check_hardware.py --quiet
 
 ## 使用方法
 
-### 1. 配置设置
+### 1. 基础CNN训练
 
-编辑 `config.py` 文件，设置数据路径和其他参数：
+#### 配置设置
 
-```python
-# 数据配置
-DATA_PATH = os.path.join(SCRIPT_DIR, "data", "minist")
-IMAGE_SIZE = (28, 28)
-NUM_CLASSES = 15
-TEST_SIZE = 0.3
+编辑 `config.py` 文件，设置数据路径和其他参数.
 
-# 训练配置
-EPOCHS = 15
-BATCH_SIZE = 32
-LEARNING_RATE = 0.02  # 初始学习率
-MOMENTUM = 0.9
-LR_DECAY_FACTOR = 0.5  # 学习率衰减因子
-LR_DECAY_STEP = 5      # 每5个epoch衰减一次
-```
-
-### 2. 训练模型
+#### 训练模型
 
 ```bash
-# 基本训练
-python main.py
+# 基本训练模式
+python main.py --mode train
 
-# 查看训练过程
-# 训练会自动显示每个epoch的:
-# - 训练准确率
-# - 测试准确率  
-# - 当前学习率
-# - 训练时间
+# 训练+评估模式
+python main.py --mode both
+
+# 仅评估模式
+python main.py --mode eval --model_path models/chinese_number_cnn.pth
+
+# 自定义参数训练
+python main.py --epochs 20 --batch_size 64 --lr 0.01
 ```
 
-### 3. 监控训练过程
+### 2. 监控训练过程
 
 ```bash
 # 启动TensorBoard查看训练过程
 tensorboard --logdir=runs/mnist_experiment_1
-
-# 在浏览器中访问: http://localhost:6006
 # 可以查看:
 # - 训练损失和准确率曲线
 # - 学习率变化曲线
@@ -158,9 +146,9 @@ tensorboard --logdir=runs/mnist_experiment_1
 |------|------|--------|
 | `EPOCHS` | 训练轮数 | 15 |
 | `BATCH_SIZE` | 批次大小 | 32 |
-| `LEARNING_RATE` | 初始学习率 | 0.02 |
-| `LR_DECAY_FACTOR` | 学习率衰减因子 | 0.5 |
-| `LR_DECAY_STEP` | 学习率衰减步长 | 5 |
+| `LEARNING_RATE` | 初始学习率 | 0.017 |
+| `LR_DECAY_FACTOR` | 学习率衰减因子 | 0.67 |
+| `LR_DECAY_STEP` | 学习率衰减步长 | 3 |
 | `MOMENTUM` | SGD动量 | 0.9 |
 | `NUM_CLASSES` | 分类数量 | 15 |
 | `TEST_SIZE` | 测试集比例 | 0.3 |
@@ -171,9 +159,11 @@ tensorboard --logdir=runs/mnist_experiment_1
 
 ```python
 # 学习率变化轨迹
-Epoch 1-5:   学习率 = 0.02
-Epoch 6-10:  学习率 = 0.01  (0.02 × 0.5)
-Epoch 11-15: 学习率 = 0.005 (0.01 × 0.5)
+Epoch 1-3:   学习率 = 0.017
+Epoch 4-6:   学习率 = 0.011  (0.017 × 0.67)
+Epoch 7-9:   学习率 = 0.007  (0.011 × 0.67)
+Epoch 10-12: 学习率 = 0.005  (0.007 × 0.67)
+Epoch 13-15: 学习率 = 0.003  (0.005 × 0.67)
 ```
 
 这种策略有助于：
@@ -190,65 +180,26 @@ Epoch 11-15: 学习率 = 0.005 (0.01 × 0.5)
 - `runs/mnist_experiment_1/`: TensorBoard日志文件
 - 控制台输出: 详细的分类报告和性能指标
 
-## 数据格式要求
+## 数据集获取
+
+### 数据来源
+
+本项目使用中文数字手写识别数据集，可以从以下来源获取：
+
+- **Kaggle数据集**: [Chinese MNIST](https://www.kaggle.com/datasets/gpreda/chinese-mnist/data)
+- **数据集描述**: 包含15个中文数字字符的手写图像数据
+- **数据规模**: 每个字符类别包含大量训练样本
+
+### 数据格式要求
 
 数据文件夹 `data/minist/` 应包含以下格式的图像文件：
 - **文件格式**: `.jpg`
 - **文件命名**: `input_X_Y_Z.jpg`
-  - X: 数据集编号 (1, 2, 3, 4)
-  - Y: 类别编号 (1-10对应数字0-9, 11-15对应十、百、千、万、亿)
-  - Z: 样本编号 (1-15)
 - **图像要求**: 28×28像素，灰度图像
-- **类别映射**: 
-  ```
-  1→零, 2→一, 3→二, 4→三, 5→四, 6→五, 7→六, 8→七, 9→八, 10→九
-  11→十, 12→百, 13→千, 14→万, 15→亿
-  ```
+- **类别标签**: 零、一、二、三、四、五、六、七、八、九、十、百、千、万、亿
 
-## 模型性能
-
-基于当前配置的典型性能：
-- **预期准确率**: 80%+ (使用动态学习率调整)
-- **训练时间**: 约5-10分钟 (取决于硬件)
-- **模型大小**: 约1MB
-- **参数数量**: ~61,706个可训练参数
-- **支持设备**: CPU / CUDA GPU / MPS (Apple Silicon)
-
-## 进一步优化建议
-
-1. **数据增强**: 添加旋转、缩放、噪声等数据增强技术
-2. **网络结构**: 尝试ResNet、DenseNet等更深的网络
-3. **正则化**: 添加Dropout和BatchNorm层防止过拟合
-4. **优化器**: 尝试Adam、AdamW等自适应学习率优化器
-5. **学习率调度**: 尝试CosineAnnealingLR、ReduceLROnPlateau等策略
-6. **数据扩充**: 增加训练数据量和多样性
-7. **模型集成**: 使用多个模型进行集成预测
 
 ## 故障排除
-
-### 常见问题
-
-1. **数据路径错误**
-   ```
-   错误: 找不到数据文件
-   解决: 确保 data/minist/ 目录存在且包含图像文件
-   ```
-
-2. **CUDA内存不足**
-   ```
-   解决: 减小BATCH_SIZE (如改为16或8) 或使用CPU训练
-   ```
-
-3. **PyTorch版本兼容性**
-   ```
-   错误: torch.cuda.memory_reserved 不存在
-   解决: 已在check_hardware.py中处理版本兼容性
-   ```
-
-4. **学习率过高导致训练不稳定**
-   ```
-   解决: 降低初始学习率或调整衰减参数
-   ```
 
 ### 调试工具
 
@@ -262,28 +213,6 @@ python model.py          # 测试模型创建
 python config.py         # 查看配置信息
 ```
 
-## 项目特色
-
-✅ **完全模块化设计** - 清晰的代码结构和职责分离  
-✅ **动态学习率调整** - 自动优化训练过程  
-✅ **实时训练监控** - TensorBoard集成可视化  
-✅ **硬件自适应** - 自动检测和配置最佳设备  
-✅ **版本兼容性** - 支持不同PyTorch版本  
-✅ **详细性能分析** - 完整的分类报告和曲线图  
-✅ **易于扩展** - 清晰的接口设计便于功能扩展  
-
 ## 许可证
 
-本项目仅供学习和研究使用。
-
-## 更新日志
-
-- **v2.0**: 动态学习率调整版本
-  - 添加StepLR学习率调度器
-  - 优化训练监控和可视化
-  - 增强硬件检测功能
-  - 改进版本兼容性
-- **v1.0**: 初始模块化版本
-  - 重构原始Jupyter Notebook
-  - 实现完整的训练和评估流程
-  - 添加TensorBoard集成
+本项目仅供学习和交流使用。

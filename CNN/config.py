@@ -19,21 +19,37 @@ class Config:
     
     # 数据加载器配置
     BATCH_SIZE = 32 # 批次大小
-    NUM_WORKERS = 4 # 工作线程数
+    NUM_WORKERS = 8 # 工作线程数
     SHUFFLE_TRAIN = True # 训练集是否随机洗牌
     SHUFFLE_TEST = False  # 测试集是否随机洗牌
     
     # 训练配置
     EPOCHS = 15
-    LEARNING_RATE = 0.02  # 初始学习率
+    LEARNING_RATE = 0.017  # 初始学习率
     MOMENTUM = 0.9 # 动量
-    LR_DECAY_FACTOR = 0.5  # 学习率衰减因子
-    LR_DECAY_STEP = 5  # 每5个epoch衰减一次
+    LR_DECAY_FACTOR = 0.67  # 学习率衰减因子
+    LR_DECAY_STEP = 3  # 每3个epoch衰减一次
     LOG_INTERVAL = 1000  # 每1000个batch记录一次
     MODEL_SAVE_DIR = os.path.join(SCRIPT_DIR, "models")
     
     # TensorBoard配置
     TENSORBOARD_LOG_DIR = 'runs/mnist_experiment_1'
+    
+    # PSO配置
+    PSO_PARTICLE_SIZE = 10  # 粒子群大小
+    PSO_ITERATIONS = 5  # PSO迭代次数
+    PSO_TRAIN_EPOCHS = 8  # 每个粒子训练的epochs数
+    PSO_FINAL_EPOCHS = 15  # 最优架构的最终训练epochs
+    PSO_DATA_SUBSET_RATIO = 0.75  # PSO训练时使用的数据子集比例
+    PSO_SAVE_DIR = os.path.join(SCRIPT_DIR, "PSO")  # PSO结果保存目录
+    PSO_TENSORBOARD_DIR = 'PSO/runs'  # PSO TensorBoard日志目录
+    
+    # PSO算法参数
+    PSO_W = 0.9  # 惯性权重
+    PSO_C1 = 2.0  # 个体学习因子
+    PSO_C2 = 2.0  # 社会学习因子
+    PSO_W_MIN = 0.4  # 最小惯性权重
+    PSO_W_MAX = 0.9  # 最大惯性权重
     
     # 设备配置
     DEVICE = (

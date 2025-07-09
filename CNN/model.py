@@ -169,7 +169,7 @@ def save_model(model, filepath):
         'model_info': model.get_model_info(),
         'config': {
             'num_classes': Config.NUM_CLASSES,
-            'input_channels': Config.INPUT_CHANNELS,
+            'input_channels': ChineseNumberCNN.INPUT_CHANNELS,
         }
     }, filepath)
     print(f"模型已保存到: {filepath}")

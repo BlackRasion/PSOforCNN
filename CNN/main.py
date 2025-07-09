@@ -141,8 +141,8 @@ def main():
     """
     parser = argparse.ArgumentParser(description='中文数字识别CNN训练程序')
     parser.add_argument('--mode', type=str, default='train', 
-                       choices=['train', 'eval', 'both'],
-                       help='运行模式: train(训练), eval(评估), both(训练+评估)')
+                       choices=['train', 'eval', 'both', 'pso'],
+                       help='运行模式: train(训练), eval(评估), both(训练+评估), pso(PSO架构搜索)')
     parser.add_argument('--model_path', type=str, 
                        default=os.path.join(Config.MODEL_SAVE_DIR, 'chinese_number_cnn.pth'),
                        help='模型文件路径(用于评估模式)')
@@ -154,6 +154,10 @@ def main():
                        help='批次大小(覆盖配置文件中的设置)')
     parser.add_argument('--lr', type=float, default=None,
                        help='学习率(覆盖配置文件中的设置)')
+    parser.add_argument('--pso-quick', action='store_true',
+                       help='PSO快速演示模式（减少粒子数和迭代次数）')
+    parser.add_argument('--skip-baseline', action='store_true',
+                       help='跳过基准模型比较（仅PSO模式）')
     
     args = parser.parse_args()
     
@@ -214,6 +218,40 @@ def main():
             accuracy, predictions, true_labels = evaluate_model(args.model_path, testloader)
             
             print(f"模型评估完成，准确率: {accuracy:.2f}%")
+        
+        elif args.mode == 'pso':
+            # PSO架构搜索模式
+            print("\n开始PSO架构搜索流程...")
+            
+            try:
+                from pso_demo import main as pso_main
+                import sys
+                
+                # 构建PSO演示的参数
+                pso_args = []
+                if args.skip_baseline:
+                    pso_args.append('--skip-baseline')
+                if getattr(args, 'pso_quick', False):
+                    pso_args.append('--quick')
+                
+                # 临时修改sys.argv以传递参数给PSO演示
+                original_argv = sys.argv.copy()
+                sys.argv = ['pso_demo.py'] + pso_args
+                
+                try:
+                    # 运行PSO演示
+                    pso_main()
+                finally:
+                    # 恢复原始argv
+                    sys.argv = original_argv
+                    
+            except ImportError as e:
+                print(f"PSO模块导入失败: {e}")
+                print("请确保所有PSO相关文件已正确创建")
+                return 1
+            except Exception as e:
+                print(f"PSO架构搜索失败: {e}")
+                return 1
         
         print("\n程序执行完成!")
         print("\n使用以下命令查看TensorBoard:")
