@@ -92,41 +92,72 @@ def run_baseline_comparison_with_data(train_loader, test_loader):
         baseline_save_dir = os.path.join(Config.PSO_SAVE_DIR, "baseline")
         os.makedirs(baseline_save_dir, exist_ok=True)
         
-        # 创建基准模型
-        baseline_model = ChineseNumberCNN().to(Config.DEVICE)
+        # 检查是否已存在训练好的基准模型
+        baseline_model_path = os.path.join(baseline_save_dir, "chinese_number_cnn.pth")
         
-        # 临时修改配置，将基准模型结果保存到PSO文件夹
-        original_model_save_dir = Config.MODEL_SAVE_DIR
-        original_tensorboard_dir = Config.TENSORBOARD_LOG_DIR
-        
-        Config.MODEL_SAVE_DIR = baseline_save_dir
-        Config.TENSORBOARD_LOG_DIR = os.path.join(Config.PSO_TENSORBOARD_DIR, "baseline")
-        
-        # 创建训练器
-        trainer = CNNTrainer(
-            model=baseline_model,
-            trainloader=train_loader,  # 修正参数名称
-            testloader=test_loader,    # 修正参数名称
-            device=Config.DEVICE
-        )
-        
-        # 不使用预训练模型，从头开始训练基准模型以公平比较
-        print("从头开始训练基准模型以公平比较PSO优化效果")
-        print(f"基准模型结果将保存到: {baseline_save_dir}")
-        trainer.train(num_epochs=Config.PSO_FINAL_EPOCHS)
-        
-        # 评估基准模型
-        baseline_accuracy, _, _ = trainer.evaluate()  # 修正返回值解包
-        print(f"基准模型准确率: {baseline_accuracy:.2f}%")
-        
-        # 保存基准模型训练曲线
-        trainer._plot_training_curves()
-        
-        # 恢复原始配置
-        Config.MODEL_SAVE_DIR = original_model_save_dir
-        Config.TENSORBOARD_LOG_DIR = original_tensorboard_dir
-        
-        print(f"基准模型训练曲线已保存到: {baseline_save_dir}")
+        if os.path.exists(baseline_model_path):
+            # 如果存在训练好的模型，直接加载
+            print(f"发现已训练的基准模型: {baseline_model_path}")
+            print("加载已训练的基准模型...")
+            
+            from model import load_model
+            baseline_model = load_model(baseline_model_path, Config.DEVICE)
+            
+            # 输出模型信息
+            print("\n基准模型信息:")
+            baseline_model.print_model_info()
+            
+            # 创建训练器进行评估
+            trainer = CNNTrainer(
+                model=baseline_model,
+                trainloader=train_loader,
+                testloader=test_loader,
+                device=Config.DEVICE
+            )
+            
+            # 评估基准模型
+            baseline_accuracy, _, _ = trainer.evaluate()
+            print(f"基准模型准确率: {baseline_accuracy:.2f}%")
+            
+        else:
+            # 如果不存在，则训练新的基准模型
+            print("未发现已训练的基准模型，开始训练新的基准模型...")
+            
+            # 创建基准模型
+            baseline_model = ChineseNumberCNN().to(Config.DEVICE)
+            
+            # 临时修改配置，将基准模型结果保存到PSO文件夹
+            original_model_save_dir = Config.MODEL_SAVE_DIR
+            original_tensorboard_dir = Config.TENSORBOARD_LOG_DIR
+            
+            Config.MODEL_SAVE_DIR = baseline_save_dir
+            Config.TENSORBOARD_LOG_DIR = os.path.join(Config.PSO_TENSORBOARD_DIR, "baseline")
+            
+            # 创建训练器
+            trainer = CNNTrainer(
+                model=baseline_model,
+                trainloader=train_loader,  # 修正参数名称
+                testloader=test_loader,    # 修正参数名称
+                device=Config.DEVICE
+            )
+            
+            # 从头开始训练基准模型以公平比较
+            print("从头开始训练基准模型以公平比较PSO优化效果")
+            print(f"基准模型结果将保存到: {baseline_save_dir}")
+            trainer.train(num_epochs=Config.PSO_FINAL_EPOCHS)
+            
+            # 评估基准模型
+            baseline_accuracy, _, _ = trainer.evaluate()  # 修正返回值解包
+            print(f"基准模型准确率: {baseline_accuracy:.2f}%")
+            
+            # 保存基准模型训练曲线
+            trainer._plot_training_curves()
+            
+            # 恢复原始配置
+            Config.MODEL_SAVE_DIR = original_model_save_dir
+            Config.TENSORBOARD_LOG_DIR = original_tensorboard_dir
+            
+            print(f"基准模型训练曲线已保存到: {baseline_save_dir}")
         
         return baseline_accuracy
         

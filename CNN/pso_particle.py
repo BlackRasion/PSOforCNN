@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PSO粒子类 - 用于表示CNN架构
+PSO粒子类 - 用于表示CNN架构,将 CNN 架构编码为基于速度运动的粒子
 """
 
 import numpy as np
@@ -13,10 +13,10 @@ class PSOParticle:
     
     粒子编码方案:
     - conv_layers: 卷积层数量 (2-4)
-    - conv_filters: 每层卷积核数量 [6, 16, 32, 64]
+    - conv_filters: 每层卷积核数量 (8-72，连续整数)
     - conv_kernels: 每层卷积核大小 [3, 5, 7]
     - fc_layers: 全连接层数量 (2-4)
-    - fc_sizes: 每层全连接层大小 [64, 128, 256, 512]
+    - fc_sizes: 每层全连接层大小 (64-512，连续整数)
     """
     
     def __init__(self, particle_id=None):
@@ -30,10 +30,10 @@ class PSOParticle:
         
         # 架构参数范围
         self.conv_layers_range = (2, 4)  # 卷积层数量范围
-        self.conv_filters_options = [6, 16, 32, 64]  # 卷积核数量选项
+        self.conv_filters_range = (8, 72)  # 卷积核数量范围（连续整数）
         self.conv_kernels_options = [3, 5, 7]  # 卷积核大小选项
         self.fc_layers_range = (2, 4)  # 全连接层数量范围
-        self.fc_sizes_options = [64, 128, 256, 512]  # 全连接层大小选项
+        self.fc_sizes_range = (64, 512)  # 全连接层大小范围（连续整数）
         
         # 初始化位置和速度
         self.position = self._initialize_position()
@@ -64,7 +64,7 @@ class PSOParticle:
         # 随机初始化卷积层参数
         for _ in range(position['conv_layers']):
             position['conv_filters'].append(
-                np.random.choice(self.conv_filters_options)
+                np.random.randint(*self.conv_filters_range)
             )
             position['conv_kernels'].append(
                 np.random.choice(self.conv_kernels_options)
@@ -73,7 +73,7 @@ class PSOParticle:
         # 随机初始化全连接层参数
         for _ in range(position['fc_layers']):
             position['fc_sizes'].append(
-                np.random.choice(self.fc_sizes_options)
+                np.random.randint(*self.fc_sizes_range)
             )
         
         return position
@@ -130,6 +130,7 @@ class PSOParticle:
         )
         
         # 更新卷积层参数速度
+        # 处理不同粒子间层数差异
         max_conv_layers = max(
             len(self.position['conv_filters']),
             len(self.best_position['conv_filters']),
@@ -138,9 +139,9 @@ class PSOParticle:
         
         for i in range(max_conv_layers):
             if i < len(self.velocity['conv_filters']):
-                best_filter = self.best_position['conv_filters'][i] if i < len(self.best_position['conv_filters']) else self.conv_filters_options[0]
-                global_filter = global_best_position['conv_filters'][i] if i < len(global_best_position['conv_filters']) else self.conv_filters_options[0]
-                current_filter = self.position['conv_filters'][i] if i < len(self.position['conv_filters']) else self.conv_filters_options[0]
+                best_filter = self.best_position['conv_filters'][i] if i < len(self.best_position['conv_filters']) else self.conv_filters_range[0]
+                global_filter = global_best_position['conv_filters'][i] if i < len(global_best_position['conv_filters']) else self.conv_filters_range[0]
+                current_filter = self.position['conv_filters'][i] if i < len(self.position['conv_filters']) else self.conv_filters_range[0]
                 
                 self.velocity['conv_filters'][i] = (
                     w * self.velocity['conv_filters'][i] +
@@ -167,9 +168,9 @@ class PSOParticle:
         
         for i in range(max_fc_layers):
             if i < len(self.velocity['fc_sizes']):
-                best_size = self.best_position['fc_sizes'][i] if i < len(self.best_position['fc_sizes']) else self.fc_sizes_options[0]
-                global_size = global_best_position['fc_sizes'][i] if i < len(global_best_position['fc_sizes']) else self.fc_sizes_options[0]
-                current_size = self.position['fc_sizes'][i] if i < len(self.position['fc_sizes']) else self.fc_sizes_options[0]
+                best_size = self.best_position['fc_sizes'][i] if i < len(self.best_position['fc_sizes']) else self.fc_sizes_range[0]
+                global_size = global_best_position['fc_sizes'][i] if i < len(global_best_position['fc_sizes']) else self.fc_sizes_range[0]
+                current_size = self.position['fc_sizes'][i] if i < len(self.position['fc_sizes']) else self.fc_sizes_range[0]
                 
                 self.velocity['fc_sizes'][i] = (
                     w * self.velocity['fc_sizes'][i] +
@@ -195,7 +196,7 @@ class PSOParticle:
         # 调整卷积层参数数组长度
         current_conv_layers = self.position['conv_layers']
         while len(self.position['conv_filters']) < current_conv_layers:
-            self.position['conv_filters'].append(np.random.choice(self.conv_filters_options))
+            self.position['conv_filters'].append(np.random.randint(*self.conv_filters_range))
             self.position['conv_kernels'].append(np.random.choice(self.conv_kernels_options))
             self.velocity['conv_filters'].append(np.random.uniform(-1, 1))
             self.velocity['conv_kernels'].append(np.random.uniform(-1, 1))
@@ -209,8 +210,7 @@ class PSOParticle:
         # 更新卷积层参数
         for i in range(len(self.position['conv_filters'])):
             new_filter = self.position['conv_filters'][i] + self.velocity['conv_filters'][i]
-            self.position['conv_filters'][i] = min(self.conv_filters_options, 
-                                                  key=lambda x: abs(x - new_filter))
+            self.position['conv_filters'][i] = int(np.clip(new_filter, *self.conv_filters_range))
             
             new_kernel = self.position['conv_kernels'][i] + self.velocity['conv_kernels'][i]
             self.position['conv_kernels'][i] = min(self.conv_kernels_options,
@@ -219,7 +219,7 @@ class PSOParticle:
         # 调整全连接层参数数组长度
         current_fc_layers = self.position['fc_layers']
         while len(self.position['fc_sizes']) < current_fc_layers:
-            self.position['fc_sizes'].append(np.random.choice(self.fc_sizes_options))
+            self.position['fc_sizes'].append(np.random.randint(*self.fc_sizes_range))
             self.velocity['fc_sizes'].append(np.random.uniform(-1, 1))
         
         while len(self.position['fc_sizes']) > current_fc_layers:
@@ -229,8 +229,7 @@ class PSOParticle:
         # 更新全连接层参数
         for i in range(len(self.position['fc_sizes'])):
             new_size = self.position['fc_sizes'][i] + self.velocity['fc_sizes'][i]
-            self.position['fc_sizes'][i] = min(self.fc_sizes_options,
-                                              key=lambda x: abs(x - new_size))
+            self.position['fc_sizes'][i] = int(np.clip(new_size, *self.fc_sizes_range))
     
     def update_best(self):
         """
