@@ -54,11 +54,11 @@ class PSOParticle:
             dict: 架构参数字典
         """
         position = {
-            'conv_layers': np.random.randint(*self.conv_layers_range),
-            'conv_filters': [],
-            'conv_kernels': [],
-            'fc_layers': np.random.randint(*self.fc_layers_range),
-            'fc_sizes': []
+            'conv_layers': np.random.randint(*self.conv_layers_range), # 卷积层数量
+            'conv_filters': [], # 卷积核数量
+            'conv_kernels': [], # 卷积核大小
+            'fc_layers': np.random.randint(*self.fc_layers_range), # 全连接层数量
+            'fc_sizes': [] # 全连接层大小
         }
         
         # 随机初始化卷积层参数
